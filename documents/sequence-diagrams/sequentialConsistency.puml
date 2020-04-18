@@ -1,0 +1,38 @@
+@startuml
+
+actor client1
+actor client2
+participant api_gateway
+participant load_balancer
+participant zookeeper
+participant controller_1
+participant controller_2
+participant controller_n
+
+client1 -> api_gateway: put(variable_name, value)
+api_gateway -> load_balancer : forward put request
+load_balancer -> load_balancer : select one of the controllers
+load_balancer -> controller_1 : forward the request
+controller_1 -> zookeeper : requests the list of \navailable controllers
+zookeeper -> controller_1 : list of available controllers
+controller_1 --> controller_1 : update local value of variable
+controller_1 --> controller_2 : total order broadcast put
+controller_2 --> controller_2 : update local copy of variable
+controller_1 --> controller_n : total order broadcast put
+controller_n --> controller_n : update local copy of variable
+controller_2 --> controller_1 : response after updating \nlocal copy
+controller_n --> controller_1 : response after updating \nlocal copy
+controller_1 -> zookeeper : get the list of available controllers
+zookeeper -> controller_1 : list of controllers
+controller_1 -> controller_1 : check if the response is greater or \nequal to number of controllers
+controller_1 -> api_gateway : response success/ failure
+api_gateway -> client1 : response success / failure
+
+client2 -> api_gateway : get(variable_name)
+api_gateway -> load_balancer : forward get request
+load_balancer -> controller_1 : select one of the controller
+load_balancer -> controller_2 : forward the request
+controller_2 -> api_gateway : response local copy of variable
+api_gateway -> client2 : response success/ failure with value
+
+@enduml
