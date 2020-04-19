@@ -1,0 +1,38 @@
+@startuml
+actor client1
+actor client2
+participant api_gateway
+participant load_balancer
+participant zookeeper
+participant primary_controller
+participant controller_2
+participant controller_n
+
+client1 -> api_gateway: put(variable_name, value), ts
+api_gateway -> load_balancer : forward put request
+load_balancer -> load_balancer : select one of the controllers
+load_balancer -> primary_controller : forward the request
+primary_controller -> zookeeper : requests the list of \n available controllers
+zookeeper -> primary_controller : list of available controllers
+primary_controller --> primary_controller : update local value of variable and increment timestamp
+primary_controller -> api_gateway : response success/ failure
+api_gateway -> client1 : response success / failure
+primary_controller --> controller_2 :  total order broadcast put
+controller_2 --> controller_2 : update local copy of variable and timestamp
+controller_2 --> primary_controller : response after updating \nlocal copy
+primary_controller --> controller_n : total order broadcast put
+controller_n --> controller_n : update local copy of variable and timestamp
+controller_n --> primary_controller : response after updating \nlocal copy
+
+client2 -> api_gateway : get(variable_name), ts
+api_gateway -> load_balancer : forward get request
+load_balancer -> load_balancer : select one of the controller
+load_balancer -> controller_2 : forward the request
+controller_2 -> api_gateway : response local copy of variable if max time stamp > read timestamp(ts) else wait for broadcast
+api_gateway -> client2 : response success/ failure with value
+
+
+
+
+
+@enduml

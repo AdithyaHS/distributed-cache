@@ -32,7 +32,11 @@ client2 -> api_gateway : get(variable_name)
 api_gateway -> load_balancer : forward get request
 load_balancer -> load_balancer : select one of the controller
 load_balancer -> controller_2 : forward the request
-controller_2 -> api_gateway : response local copy of variable
+controller_2 --> controller_1 : total order broadcast get
+controller_2 --> controller_n : total order broadcast get
+controller_1 --> controller_2 : response local copy of variable
+controller_n --> controller_2 : response local copy of variable
+controller_2 -> api_gateway : respond with highest version of  variable
 api_gateway -> client2 : response success/ failure with value
 
 @enduml
