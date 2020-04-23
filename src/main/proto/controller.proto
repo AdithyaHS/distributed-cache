@@ -2,15 +2,25 @@ syntax = "proto3";
 
 package com.distributedsystems.distributedcache.controller;
 
+enum ConsistencyLevel {
+  DEFAULT = 0;
+  SEQUENTIAL = 1;
+  EVENTUAL = 2;
+  LINEARIZABILITY = 3;
+  CAUSAL = 4;
+}
+
 message ReadRequest {
   string key = 1;
   int64 lamportClock = 2;
+  ConsistencyLevel consistencyLevel = 3;
 }
 
 message WriteRequest {
   string key = 1;
   string value = 2;
   int64 lamportClock = 3;
+  ConsistencyLevel consistencyLevel = 4;
 }
 
 message ReadResponse {
@@ -25,7 +35,7 @@ message WriteResponse {
 
 service ControllerService{
 
-  rpc get(ReadRequest) returns(ReadRequest) {};
+  rpc get(ReadRequest) returns(ReadResponse) {};
   rpc put(WriteRequest) returns(WriteResponse) {};
 
 }
