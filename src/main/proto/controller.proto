@@ -33,9 +33,16 @@ message WriteResponse {
   bool success = 1;
 }
 
+message BroadcastRequest {} //add request params here
+
+message BroadcastResponse {
+  bool success = 1;
+}
+
 service ControllerService{
 
   rpc get(ReadRequest) returns(ReadResponse) {};
   rpc put(WriteRequest) returns(WriteResponse) {};
+  rpc broadcastRequestHandler(BroadcastRequest) returns(BroadcastResponse) {};
 
 }
