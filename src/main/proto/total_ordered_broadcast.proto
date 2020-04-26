@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package com.distributedsystems.distributedcache.totalorderedbroadcast;
+
+import "controller.proto";
+
+enum RequestType {
+    GET = 0;
+    PUT = 1;
+}
+
+message BroadcastMessage {
+    RequestType typeOfRequest = 1;
+    string lamportClock = 2;
+    string key = 3;
+    string value = 4;
+}
+
+message AckMessage {
+    BroadcastMessage broadcastMessage = 1;
+    bool isAcknowledgementPublished = 2;
+}
+
+message Empty {
+    string lamportClock = 1;
+}
+
+service TotalOrderBroadcastService {
+    rpc sendBroadcastMessage (BroadcastMessage) returns (Empty) {
+    };
+    rpc receiveBroadcastMessage (BroadcastMessage) returns (Empty) {
+    };
+    rpc receiveAck (AckMessage) returns (Empty) {
+    };
+}
