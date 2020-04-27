@@ -7,8 +7,7 @@
             </Pattern>
         </layout>
     </appender>
-    <root level="error">
+    <root level="info">
         <appender-ref ref="CONSOLE"/>
     </root>
-    acknowlegement received
 </configuration>

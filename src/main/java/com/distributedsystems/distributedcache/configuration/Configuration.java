@@ -11,6 +11,9 @@ public class Configuration {
     private HashMap<String, String> config = new HashMap<String, String>();
     private String TOTAL_BROADCAST_CONFIG_FILE_PATH = "src/main/resources/configuration/serverconf";
 
+    /**
+     * @description Parses the server.conf file to get the ip address of the servers.
+     */
     private Configuration() {
         File file = new File(TOTAL_BROADCAST_CONFIG_FILE_PATH);
 
