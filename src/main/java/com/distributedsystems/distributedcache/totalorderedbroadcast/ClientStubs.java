@@ -22,7 +22,6 @@ public class ClientStubs {
         System.out.println(config);
         for (Map.Entry<String, String> entry : config.entrySet()) {
             String[] address = entry.getValue().split(":");
-//            System.out.println(address[0] + address[1]);
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(address[0].trim(), Integer.valueOf(address[1]))
                     .usePlaintext()
@@ -31,7 +30,7 @@ public class ClientStubs {
                     .newStub(channel);
 
             //get the current ip address here compare if its the actual client
-            if (address[0].equals(" 127.0.0.1") && address[1].equals("1993")) {
+            if (address[0].equals(" 10.0.0.202") && address[1].equals("1993")) {
                 currentClientTOBstub = stub;
             }
             totalOrderBroadcastServiceStubs.add(stub);

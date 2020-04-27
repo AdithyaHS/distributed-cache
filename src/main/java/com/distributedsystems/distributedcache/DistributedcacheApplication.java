@@ -7,12 +7,16 @@ import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrdere
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.ArrayList;
 
+
 @SpringBootApplication
 public class DistributedcacheApplication {
+    private static final Logger logger = LoggerFactory.getLogger(DistributedcacheApplication.class);
 
     public static void main(String[] args) {
 
