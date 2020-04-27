@@ -4,7 +4,9 @@ import com.distributedsystems.distributedcache.consistency.ConsistencyImpl;
 import com.distributedsystems.distributedcache.consistency.ConsistencyResolver;
 import com.google.common.base.Optional;
 import io.grpc.stub.StreamObserver;
+import org.lognet.springboot.grpc.GRpcService;
 
+@GRpcService
 public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceImplBase{
 
     @Override
@@ -23,5 +25,11 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
         //TODO: implement
         super.put(request, responseObserver);
+    }
+
+    @Override
+    public void broadcastRequestHandler(Controller.BroadcastRequest request, StreamObserver<Controller.BroadcastResponse> responseObserver) {
+        //TODO: implement
+        super.broadcastRequestHandler(request, responseObserver);
     }
 }
