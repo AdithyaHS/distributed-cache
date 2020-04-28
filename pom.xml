@@ -36,9 +36,19 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>io.github.lognet</groupId>
+			<artifactId>grpc-spring-boot-starter</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-all</artifactId>
-			<version>1.29.0</version>
+			<version>1.28.0</version>
 		</dependency>
 	</dependencies>
 
