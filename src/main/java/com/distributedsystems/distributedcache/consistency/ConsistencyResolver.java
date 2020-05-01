@@ -1,22 +1,33 @@
 package com.distributedsystems.distributedcache.consistency;
 
 import com.distributedsystems.distributedcache.controller.Controller;
-import com.google.common.base.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
+@Component
 public class ConsistencyResolver {
 
-    public static Optional<ConsistencyImpl> resolveConsistency(Controller.ConsistencyLevel level){
+    @Autowired
+    SequentialConsistency sequentialConsistency;
+    @Autowired
+    EventualConsistency eventualConsistency;
+    @Autowired
+    LinearizabilityConsistency linearizabilityConsistency;
+
+    public Optional<ConsistencyImplInterface> resolveConsistency(Controller.ConsistencyLevel level){
         if(Controller.ConsistencyLevel.SEQUENTIAL.equals(level)){
-            return Optional.of((ConsistencyImpl) new SequentialConsistency());
+            return Optional.of(sequentialConsistency);
         }
         else if(Controller.ConsistencyLevel.EVENTUAL.equals(level)){
-            return Optional.of((ConsistencyImpl) new EventualConsistency());
+            return Optional.of(eventualConsistency);
         }
         else if(Controller.ConsistencyLevel.LINEARIZABILITY.equals(level)){
-            return Optional.of((ConsistencyImpl) new LinearizabilityConsistency());
+            return Optional.of(linearizabilityConsistency);
         }
         else{
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 }

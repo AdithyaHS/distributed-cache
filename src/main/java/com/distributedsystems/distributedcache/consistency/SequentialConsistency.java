@@ -1,4 +1,13 @@
 package com.distributedsystems.distributedcache.consistency;
 
-public class SequentialConsistency extends AbstractConsistencyImpl{
+import com.distributedsystems.distributedcache.controller.Controller;
+import org.springframework.stereotype.Component;
+
+@Component
+public class SequentialConsistency extends ConsistencyImpl {
+
+    @Override
+    public Controller.WriteResponse write(ConsistencyRequest request) {
+        return super.broadcastWrite(request);
+    }
 }
