@@ -6,7 +6,6 @@ import com.distributedsystems.distributedcache.controller.Controller;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.ClientStubs;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +74,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
                     //TODO: fix this return success to user
                     BroadcastStatus status = new BroadcastStatus();
                     request.getPendingRequests().put(request.getLamportClock(), status);
-                    checkStatus(status);
+                    waitUntilBroadcastIsCompleted(status);
                     //return Controller.WriteResponse.newBuilder().setSuccess(true).build();
                 }
             };
@@ -101,7 +100,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
     /*
     * This will block until tob server calls broadcastRequestAcknowledgement is called and status is set to completed
      */
-    protected void checkStatus(BroadcastStatus status){
+    protected void waitUntilBroadcastIsCompleted(BroadcastStatus status){
         synchronized (status){
             while(!status.isCompleted()){
                 try {
