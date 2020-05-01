@@ -30,6 +30,9 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
     @Override
     public Controller.ReadResponse read(ConsistencyRequest request){
         String value = utils.readFromRedis(request.getKey());
+        if(value==null){
+            return Controller.ReadResponse.newBuilder().setSuccess(false).build();
+        }
         return Controller.ReadResponse.newBuilder().setValue(value).setSuccess(true).build();
     }
 
@@ -95,6 +98,9 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
         return stub;
     }
 
+    /*
+    * This will block until tob server calls broadcastRequestAcknowledgement is called and status is set to completed
+     */
     protected void checkStatus(BroadcastStatus status){
         synchronized (status){
             while(!status.isCompleted()){
