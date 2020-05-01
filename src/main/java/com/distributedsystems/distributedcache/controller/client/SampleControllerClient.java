@@ -14,9 +14,13 @@ public class SampleControllerClient {
     }
 
     public static void main(String[] args) {
+        //Testing eventual consistency local write and local read
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
-        //stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
-        stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
+        Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+        System.out.println(response.getSuccess());
+        Controller.ReadResponse readResponse = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+        System.out.println(readResponse.getValue());
+        //stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
         //stub.broadcastRequestAcknowledgement(Controller.Ack.newBuilder().setLamportClock("1.1").build());
     }
 }
