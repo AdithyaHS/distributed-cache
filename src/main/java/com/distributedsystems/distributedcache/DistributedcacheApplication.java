@@ -9,15 +9,21 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.distributedsystems.distributedcache")
 public class DistributedcacheApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(DistributedcacheApplication.class);
     private static final int port = 1993; // To be changed to read from the config file
 
     public static void main(String[] args) {
+
+        /*
+        * This is required to start controller grpc server
+        */
+        SpringApplication.run(DistributedcacheApplication.class, args);
 
         /*
          * Create a total order broadcast server from the main. Runs on port 1993.
@@ -68,7 +74,7 @@ public class DistributedcacheApplication {
             }
         };
 
-        stub.withWaitForReady().sendBroadcastMessage(message, response);
+        //stub.withWaitForReady().sendBroadcastMessage(message, response);
 
         try {
             server.awaitTermination();

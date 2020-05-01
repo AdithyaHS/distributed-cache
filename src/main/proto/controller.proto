@@ -12,37 +12,34 @@ enum ConsistencyLevel {
 
 message ReadRequest {
   string key = 1;
-  int64 lamportClock = 2;
-  ConsistencyLevel consistencyLevel = 3;
+  ConsistencyLevel consistencyLevel = 2;
 }
 
 message WriteRequest {
   string key = 1;
   string value = 2;
-  int64 lamportClock = 3;
-  ConsistencyLevel consistencyLevel = 4;
+  ConsistencyLevel consistencyLevel = 3;
 }
 
 message ReadResponse {
   string value = 1;
-  string lamportClock = 2;
-  bool success = 3;
+  bool success = 2;
 }
 
 message WriteResponse {
   bool success = 1;
 }
 
-message BroadcastRequest {} //add request params here
+message broadcastRequestAcknowledgementResponse{}
 
-message BroadcastResponse {
-  bool success = 1;
+message Ack {
+  string lamportClock = 1;
+  string valueRead = 2; //TODO: need this for broadcast read. How else should TOB server return value for broadcast read requests?
 }
 
 service ControllerService{
 
   rpc get(ReadRequest) returns(ReadResponse) {};
   rpc put(WriteRequest) returns(WriteResponse) {};
-  rpc broadcastRequestHandler(BroadcastRequest) returns(BroadcastResponse) {};
-
+  rpc broadcastRequestAcknowledgement(Ack) returns(broadcastRequestAcknowledgementResponse){};
 }

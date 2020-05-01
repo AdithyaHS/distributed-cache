@@ -1,4 +1,7 @@
 package com.distributedsystems.distributedcache.consistency;
 
-public class SequentialConsistency extends AbstractConsistencyImpl{
+import org.springframework.stereotype.Component;
+
+@Component
+public class SequentialConsistency extends ConsistencyImpl {
 }
