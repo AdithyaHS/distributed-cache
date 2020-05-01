@@ -1,6 +1,5 @@
 package com.distributedsystems.distributedcache.consistency;
 
-import com.distributedsystems.distributedcache.AppConfig;
 import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
 import com.distributedsystems.distributedcache.Utilities.Utils;
 import com.distributedsystems.distributedcache.controller.Controller;
@@ -20,6 +19,9 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
     @Autowired
     private ControllerConfigurations appConfig;
 
+    @Autowired
+    private Utils utils;
+
     private static final Logger logger = LoggerFactory.getLogger(ConsistencyImpl.class);
 
     /*
@@ -27,7 +29,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
      */
     @Override
     public Controller.ReadResponse read(ConsistencyRequest request){
-        String value = Utils.readFromRedis(request.getKey());
+        String value = utils.readFromRedis(request.getKey());
         return Controller.ReadResponse.newBuilder().setValue(value).setSuccess(true).build();
     }
 

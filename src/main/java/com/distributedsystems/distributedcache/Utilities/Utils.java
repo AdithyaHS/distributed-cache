@@ -1,12 +1,19 @@
 package com.distributedsystems.distributedcache.Utilities;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 
+@Component
 public class Utils {
 
-    public static boolean writeToRedis(String key, String value){
+    @Autowired
+    ControllerConfigurations controllerConfigurations;
 
-        Jedis jedis = new Jedis();
+    public boolean writeToRedis(String key, String value){
+
+        Jedis jedis = new Jedis(new HostAndPort(controllerConfigurations.redisHost, controllerConfigurations.redisPort));
         String str = jedis.set(key, value);
         if(str.equals("OK")){
             return true;
@@ -16,9 +23,8 @@ public class Utils {
     }
 
 
-    public static String readFromRedis(String key){
-        
-        Jedis jedis = new Jedis();
+    public String readFromRedis(String key){
+        Jedis jedis = new Jedis(new HostAndPort(controllerConfigurations.redisHost, controllerConfigurations.redisPort));
         return jedis.get(key);
     }
 }

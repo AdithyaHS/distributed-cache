@@ -12,4 +12,8 @@ public class ControllerConfigurations {
     public int tobPort;
     @org.springframework.beans.factory.annotation.Value("${controller.id}")
     public int controllerId;
+    @org.springframework.beans.factory.annotation.Value("${redis.host}")
+    public String redisHost;
+    @org.springframework.beans.factory.annotation.Value("${redis.port}")
+    public int redisPort;
 }
