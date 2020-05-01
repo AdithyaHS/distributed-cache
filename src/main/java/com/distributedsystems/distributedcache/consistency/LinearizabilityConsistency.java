@@ -3,7 +3,6 @@ package com.distributedsystems.distributedcache.consistency;
 import com.distributedsystems.distributedcache.controller.Controller;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public class LinearizabilityConsistency extends ConsistencyImpl {
                 //TODO: fix this return success to user
                 BroadcastStatus status = new BroadcastStatus();
                 request.getPendingRequests().put(request.getLamportClock(), status);
-                checkStatus(status);
+                waitUntilBroadcastIsCompleted(status);
                 //return Controller.ReadResponse.newBuilder().setValue(status.getValue()).setSuccess(true).build();
             }
         };
