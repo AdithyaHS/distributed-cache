@@ -65,7 +65,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
 
     protected void checkStatus(BroadcastStatus status){
         synchronized (status){
-            while(!status.isCompleted){
+            while(!status.isCompleted()){
                 try {
                     status.wait();
                 } catch (InterruptedException e) {
