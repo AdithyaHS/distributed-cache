@@ -1,7 +1,11 @@
 package com.distributedsystems.distributedcache.totalorderedbroadcast;
 
+import com.distributedsystems.distributedcache.controller.ControllerServiceGrpc;
 import com.distributedsystems.distributedcache.dto.TotalOrderedBroadcastMessage;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +14,7 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.PriorityBlockingQueue;
 
+@GRpcService
 public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceImplBase {
 
     private static final Logger logger = LoggerFactory.getLogger(TotalOrderBroadcastHandler.class);
@@ -174,6 +179,34 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
                 logger.info("All acknowledgements received for message " + key);
                 logger.info("Delivering message to Application");
+
+                ManagedChannel channel = ManagedChannelBuilder
+                        .forAddress("localhost", 7004)
+                        .usePlaintext()
+                        .build();
+
+                ControllerServiceGrpc.ControllerServiceStub controllerServiceStub =
+                        ControllerServiceGrpc.newStub(channel);
+
+                StreamObserver<TotalOrderedBroadcast.Empty> broadcastMessageStreamResponse =
+                        new StreamObserver<TotalOrderedBroadcast.Empty>() {
+                            @Override
+                            public void onNext(TotalOrderedBroadcast.Empty broadcastMessage) {
+                                logger.debug("on next after delivering the message to the application");
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {
+                                logger.debug("Error delivering the message" + throwable.getMessage());
+                            }
+
+                            @Override
+                            public void onCompleted() {
+                                logger.debug("Completed delivering the message");
+                            }
+                        };
+                controllerServiceStub.withWaitForReady().handleMessageRequest(request.getBroadcastMessage()
+                        , broadcastMessageStreamResponse);
                 /* ************************************/
                 /* send the message to controller part */
                 sendAck();

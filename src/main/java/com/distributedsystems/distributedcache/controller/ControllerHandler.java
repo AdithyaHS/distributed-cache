@@ -5,21 +5,23 @@ import com.distributedsystems.distributedcache.consistency.BroadcastStatus;
 import com.distributedsystems.distributedcache.consistency.ConsistencyImplInterface;
 import com.distributedsystems.distributedcache.consistency.ConsistencyRequest;
 import com.distributedsystems.distributedcache.consistency.ConsistencyResolver;
+import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
 import io.grpc.stub.StreamObserver;
 import org.lognet.springboot.grpc.GRpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
-
-
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 
 @GRpcService
 public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceImplBase{
+
+    private static final Logger logger = LoggerFactory.getLogger(ControllerHandler.class);
 
     @Autowired
     ControllerConfigurations appConfig;
@@ -139,5 +141,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         return Integer.parseInt(clientTimeStamp[0]);
     }
 
+    @Override
+    public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
+        logger.info("Message received!!!! " + request.getLamportClock() + " key:" + request.getKey());
+    }
 
 }
