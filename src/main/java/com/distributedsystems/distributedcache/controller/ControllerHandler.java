@@ -66,6 +66,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             status.setValue(request.getValueRead());
             status.setCompletedAndNotify(true);
         }
+
         responseObserver.onNext(Controller.broadcastRequestAcknowledgementResponse.newBuilder().build());
         responseObserver.onCompleted();
     }

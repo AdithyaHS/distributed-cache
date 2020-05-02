@@ -16,6 +16,7 @@ public class Test {
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
         //stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
         //stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
-        stub.broadcastRequestAcknowledgement(Controller.Ack.newBuilder().setLamportClock("1.1").build());
+        Controller.broadcastRequestAcknowledgementResponse response = stub.broadcastRequestAcknowledgement(Controller.Ack.newBuilder().setLamportClock("1.3").build());
+        System.out.println(response.toString());
     }
 }
