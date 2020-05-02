@@ -50,7 +50,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
             consistencyRequest.setKey(request.getKey());
             consistencyRequest.setPendingRequests(pendingRequests);
-            if(!request.getConsistencyLevel().equals("4")) {
+            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL)) {
                 consistencyRequest.setLamportClock(getLamportClock());
                 Controller.ReadResponse response = consistencyImpl.get().read(consistencyRequest);
                 responseObserver.onNext(response);
@@ -82,7 +82,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             consistencyRequest.setKey(request.getKey());
             consistencyRequest.setValue(request.getValue());
             consistencyRequest.setPendingRequests(pendingRequests);
-            if(!request.getConsistencyLevel().equals("4"))
+            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL))
                 consistencyRequest.setLamportClock(getLamportClock(request));
             else
                 consistencyRequest.setLamportClock(String.valueOf(this.requestId));
