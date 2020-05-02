@@ -15,6 +15,8 @@ public class ConsistencyResolver {
     EventualConsistency eventualConsistency;
     @Autowired
     LinearizabilityConsistency linearizabilityConsistency;
+    @Autowired
+    LinearizabilityConsistency causalConsistency;
 
     public Optional<ConsistencyImplInterface> resolveConsistency(Controller.ConsistencyLevel level){
         if(Controller.ConsistencyLevel.SEQUENTIAL.equals(level)){
@@ -25,6 +27,9 @@ public class ConsistencyResolver {
         }
         else if(Controller.ConsistencyLevel.LINEARIZABILITY.equals(level)){
             return Optional.of(linearizabilityConsistency);
+        }
+        else if(Controller.ConsistencyLevel.CAUSAL.equals(level)) {
+            return Optional.of(causalConsistency);
         }
         else{
             return Optional.empty();

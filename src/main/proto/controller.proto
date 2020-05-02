@@ -13,12 +13,14 @@ enum ConsistencyLevel {
 message ReadRequest {
   string key = 1;
   ConsistencyLevel consistencyLevel = 2;
+  string timeStamp = 3;
 }
 
 message WriteRequest {
   string key = 1;
   string value = 2;
   ConsistencyLevel consistencyLevel = 3;
+  string timeStamp = 4;
 }
 
 message ReadResponse {
@@ -28,6 +30,7 @@ message ReadResponse {
 
 message WriteResponse {
   bool success = 1;
+  string timeStamp = 2;
 }
 
 message broadcastRequestAcknowledgementResponse{}
