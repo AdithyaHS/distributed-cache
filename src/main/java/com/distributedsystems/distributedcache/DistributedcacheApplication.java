@@ -38,6 +38,7 @@ public class DistributedcacheApplication {
 
         logger.info("Server started at port: " + server.getPort());
 
+
         /*
          * This is to get the current Total order client stub that will be associated with this controller
          */
@@ -74,7 +75,7 @@ public class DistributedcacheApplication {
             }
         };
 
-        //stub.withWaitForReady().sendBroadcastMessage(message, response);
+        stub.withWaitForReady().sendBroadcastMessage(message, response);
 
         try {
             server.awaitTermination();
