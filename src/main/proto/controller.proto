@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.distributedsystems.distributedcache.controller;
 
+import "total_ordered_broadcast.proto";
+
 enum ConsistencyLevel {
   DEFAULT = 0;
   SEQUENTIAL = 1;
@@ -45,4 +47,6 @@ service ControllerService{
   rpc get(ReadRequest) returns(ReadResponse) {};
   rpc put(WriteRequest) returns(WriteResponse) {};
   rpc broadcastRequestAcknowledgement(Ack) returns(broadcastRequestAcknowledgementResponse){};
+  rpc handleMessageRequest(com.distributedsystems.distributedcache.totalorderedbroadcast.BroadcastMessage)
+                returns(com.distributedsystems.distributedcache.totalorderedbroadcast.Empty){};
 }
