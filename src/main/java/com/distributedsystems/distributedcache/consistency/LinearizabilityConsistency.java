@@ -3,6 +3,7 @@ package com.distributedsystems.distributedcache.consistency;
 import com.distributedsystems.distributedcache.controller.Controller;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Component;
 public class LinearizabilityConsistency extends ConsistencyImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(LinearizabilityConsistency.class);
-
+    /*
+    * broadcast read request
+     */
     @Override
     public Controller.ReadResponse read(ConsistencyRequest request) {
 
@@ -25,32 +28,18 @@ public class LinearizabilityConsistency extends ConsistencyImpl {
         builder.setTypeOfRequest(TotalOrderedBroadcast.RequestType.GET);
         builder.setLamportClock(request.getLamportClock());
 
-        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub client = super.getTOBClient();
-        StreamObserver<TotalOrderedBroadcast.Empty> response = new StreamObserver<TotalOrderedBroadcast.Empty>() {
+        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub client = super.getTOBClient();
+        try{
+            TotalOrderedBroadcast.Empty broadcastResponse = client.withWaitForReady().sendBroadcastMessage(builder.build());
+        }catch (StatusRuntimeException e){
+            logger.error(e.getMessage());
+            return Controller.ReadResponse.newBuilder().setSuccess(false).build();
+        }
 
-            @Override
-            public void onNext(TotalOrderedBroadcast.Empty empty) {
-                //do nothing
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                System.out.println(throwable.getCause() + " " + throwable.getMessage());
-                //TODO: fix this return error to the user
-            }
-
-            @Override
-            public void onCompleted() {
-                //TODO: fix this return success to user
-                BroadcastStatus status = new BroadcastStatus();
-                request.getPendingRequests().put(request.getLamportClock(), status);
-                waitUntilBroadcastIsCompleted(status);
-                //return Controller.ReadResponse.newBuilder().setValue(status.getValue()).setSuccess(true).build();
-            }
-        };
-
-        client.withWaitForReady().sendBroadcastMessage(builder.build(), response);
-        return null;
+        BroadcastStatus status = new BroadcastStatus();
+        request.getPendingRequests().put(request.getLamportClock(), status);
+        waitUntilBroadcastIsCompleted(status);
+        return Controller.ReadResponse.newBuilder().setValue(status.getValue()).setSuccess(true).build();
     }
 
     @Override

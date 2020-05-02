@@ -3,9 +3,11 @@ package com.distributedsystems.distributedcache.consistency;
 import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
 import com.distributedsystems.distributedcache.Utilities.Utils;
 import com.distributedsystems.distributedcache.controller.Controller;
-import com.distributedsystems.distributedcache.totalorderedbroadcast.ClientStubs;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
 import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,9 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
         return Controller.WriteResponse.newBuilder().setSuccess(false).build();
     }
 
+    /*
+    * This method calls the broadcast server can blocks until the
+     */
     protected Controller.WriteResponse broadcastWrite(ConsistencyRequest request) {
         TotalOrderedBroadcast.BroadcastMessage.Builder builder = TotalOrderedBroadcast.BroadcastMessage.newBuilder();
         builder.setKey(request.getKey());
@@ -55,46 +60,25 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
         builder.setTypeOfRequest(TotalOrderedBroadcast.RequestType.PUT);
         builder.setLamportClock(request.getLamportClock());
 
-        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub client = getTOBClient();
-        StreamObserver<TotalOrderedBroadcast.Empty> response = new StreamObserver<TotalOrderedBroadcast.Empty>() {
-
-                @Override
-                public void onNext(TotalOrderedBroadcast.Empty empty) {
-                    //do nothing
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    System.out.println(throwable.getCause() + " " + throwable.getMessage());
-                    //TODO: fix this return error to the user
-                }
-
-                @Override
-                public void onCompleted() {
-                    //TODO: fix this return success to user
-                    BroadcastStatus status = new BroadcastStatus();
-                    request.getPendingRequests().put(request.getLamportClock(), status);
-                    waitUntilBroadcastIsCompleted(status);
-                    //return Controller.WriteResponse.newBuilder().setSuccess(true).build();
-                }
-            };
-
-            client.withWaitForReady().sendBroadcastMessage(builder.build(), response);
-            return null;
+        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub client = getTOBClient();
+        try{
+            TotalOrderedBroadcast.Empty broadcastResponse = client.sendBroadcastMessage(builder.build());
+            BroadcastStatus status = new BroadcastStatus();
+            request.getPendingRequests().put(request.getLamportClock(), status);
+            waitUntilBroadcastIsCompleted(status);
+            return Controller.WriteResponse.newBuilder().setSuccess(true).build();
+        } catch (StatusRuntimeException e) {
+            logger.error(e.getMessage());
+            return Controller.WriteResponse.newBuilder().setSuccess(false).build();
+        }
     }
 
-    protected TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub getTOBClient(){
+    protected TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub getTOBClient(){
 
-//        String tobHost = appConfig.tobHost;
-//        int tobPort = appConfig.tobPort;
-//        ManagedChannel channel = ManagedChannelBuilder.forAddress(tobHost, tobPort).usePlaintext().build();
-//        return TotalOrderBroadcastServiceGrpc.newBlockingStub(channel);
-        /*
-         * This is to get the current Total order client stub that will be associated with this controller
-         */
-        ClientStubs clientStub = ClientStubs.getInstance();
-        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = clientStub.getCurrentTOBStub();
-        return stub;
+        String tobHost = appConfig.tobHost;
+        int tobPort = appConfig.tobPort;
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(tobHost, tobPort).usePlaintext().build();
+        return TotalOrderBroadcastServiceGrpc.newBlockingStub(channel);
     }
 
     /*
