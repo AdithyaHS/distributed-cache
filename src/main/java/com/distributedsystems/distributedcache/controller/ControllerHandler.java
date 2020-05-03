@@ -102,18 +102,14 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }
     }
 
-
-
-    @Override
-    public void broadcastRequestAcknowledgement(Controller.Ack request, StreamObserver<Controller.broadcastRequestAcknowledgementResponse> responseObserver) {
+    public void unblockController(ConsistencyRequest request) {
+        logger.info("Got a broadcast ack for request: " + request.getLamportClock());
         if(pendingRequests.containsKey(request.getLamportClock())) {
+            logger.info("Unblocking client for request: " + request.getLamportClock());
             BroadcastStatus status = pendingRequests.get(request.getLamportClock());
-            status.setValue(request.getValueRead());
+            status.setValue(request.getValue());
             status.setCompletedAndNotify(true);
         }
-
-        responseObserver.onNext(Controller.broadcastRequestAcknowledgementResponse.newBuilder().build());
-        responseObserver.onCompleted();
     }
 
     private String getLamportClock(){
@@ -151,15 +147,19 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Override
     public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
+        logger.info("Received ack for broadcast request: " + request.getLamportClock());
+        ConsistencyRequest response = new ConsistencyRequest();
+        response.setLamportClock(request.getLamportClock());
         if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.GET)){
-            utils.readFromRedis(request.getKey());
-            responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
-            responseObserver.onCompleted();
+           String value = utils.readFromRedis(request.getKey());
+            response.setValue(value);
+
         }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
             utils.writeToRedis(request.getKey(), request.getValue());
-            responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
-            responseObserver.onCompleted();
         }
+        unblockController(response);
+        responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
+        responseObserver.onCompleted();
     }
 
 }

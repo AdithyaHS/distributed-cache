@@ -4,9 +4,6 @@ import com.distributedsystems.distributedcache.controller.Controller;
 import com.distributedsystems.distributedcache.controller.ControllerServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-
-import static java.lang.Thread.sleep;
 
 public class SampleControllerClient {
 
@@ -20,16 +17,31 @@ public class SampleControllerClient {
         /*
         * It is upto client of controller to decide whether use a blocking stub or a non blocking stub. Samples for both are provided.
          */
-        //Testing eventual consistency local write and local read
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
-//        Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
-//        System.out.println(response.getSuccess());
-//        Controller.ReadResponse readResponse = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
-//        System.out.println(readResponse.getValue());
+        //Testing eventual consistency local write and local read
+        System.out.println("Testing for eventual consistency");
+        Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+        System.out.println(response.getSuccess());
+        Controller.ReadResponse readResponse = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+        System.out.println(readResponse.getValue());
 
         //Testing for sequential consistency for broadcast write
-        stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
+        System.out.println("Testing for sequential consistency");
+        Controller.WriteResponse sequentialWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).setKey("a").setValue("2").build());
+        System.out.println(sequentialWrite.getSuccess());
+        //Testing for sequential consistency local read request
+        Controller.ReadResponse sequentialRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).setKey("a").build());
+        System.out.println(sequentialRead.getValue());
 
+
+        //Testing for linearizability broadcast write
+        System.out.println("Testing for linearizability consistency");
+        Controller.WriteResponse linearizabilityWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").setValue("3").build());
+        System.out.println(linearizabilityWrite.getSuccess());
+
+        Controller.ReadResponse linearizabilityRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").build());
+        System.out.println(linearizabilityRead.getValue());
+//
 
         // example async stub. Client should use this only when it wants to do some work in the background
 //        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();

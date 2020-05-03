@@ -62,11 +62,13 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
 
         TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub client = getTOBClient();
         try{
-            logger.info("Sending a broadcast request to the tob server for request" + request.getLamportClock());
-            TotalOrderedBroadcast.Empty broadcastResponse = client.sendBroadcastMessage(builder.build());
+            logger.info("Sending a broadcast request to the tob server for request " + request.getLamportClock());
             BroadcastStatus status = new BroadcastStatus();
             request.getPendingRequests().put(request.getLamportClock(), status);
+            TotalOrderedBroadcast.Empty broadcastResponse = client.sendBroadcastMessage(builder.build());
+            logger.info("Waiting for the broadcast request to complete request: " + request.getLamportClock());
             waitUntilBroadcastIsCompleted(status);
+            logger.info("Broadcast request completed replying to the client for request:  " + request.getLamportClock());
             return Controller.WriteResponse.newBuilder().setSuccess(true).build();
         } catch (StatusRuntimeException e) {
             logger.error(e.getMessage());
@@ -89,7 +91,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
         synchronized (status){
             while(!status.isCompleted()){
                 try {
-                    status.wait();
+                    status.wait(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
