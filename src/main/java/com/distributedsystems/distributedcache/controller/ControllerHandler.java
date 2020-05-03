@@ -5,21 +5,23 @@ import com.distributedsystems.distributedcache.consistency.BroadcastStatus;
 import com.distributedsystems.distributedcache.consistency.ConsistencyImplInterface;
 import com.distributedsystems.distributedcache.consistency.ConsistencyRequest;
 import com.distributedsystems.distributedcache.consistency.ConsistencyResolver;
+import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
 import io.grpc.stub.StreamObserver;
 import org.lognet.springboot.grpc.GRpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
-
-
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 
 @GRpcService
 public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceImplBase{
+
+    private static final Logger logger = LoggerFactory.getLogger(ControllerHandler.class);
 
     @Autowired
     ControllerConfigurations appConfig;
@@ -73,7 +75,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }
     }
 
-    @Override
+
+
+        @Override
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
 
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
@@ -127,10 +131,12 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
     private void processPendingGetRequests() {
         while(!pendingGetRequestsQueue.isEmpty() && getClientTimeStamp(pendingGetRequestsQueue.peek().getTimeStamp()) <= this.requestId){
                 Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(Controller.ConsistencyLevel.CAUSAL);
-                Controller.ReadRequest request= pendingGetRequestsQueue.poll();
-                StreamObserver<Controller.ReadResponse> responseObserver = pendingGetRequestsMap.get(request);
-                pendingGetRequestsMap.remove(request);
-                this.get(request,responseObserver);
+                synchronized (this){
+                    Controller.ReadRequest request= pendingGetRequestsQueue.poll();
+                    StreamObserver<Controller.ReadResponse> responseObserver = pendingGetRequestsMap.get(request);
+                    pendingGetRequestsMap.remove(request);
+                    this.get(request,responseObserver);
+                }
         }
     }
 
@@ -139,5 +145,10 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         return Integer.parseInt(clientTimeStamp[0]);
     }
 
+    @Override
+    public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
+        logger.info("Message received!!!! " + request.getLamportClock() + " key:" + request.getKey());
+
+    }
 
 }

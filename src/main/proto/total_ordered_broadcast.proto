@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package com.distributedsystems.distributedcache.totalorderedbroadcast;
 
-import "controller.proto";
-
 enum RequestType {
     GET = 0;
     PUT = 1;
