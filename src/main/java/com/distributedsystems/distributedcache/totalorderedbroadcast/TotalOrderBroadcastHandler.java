@@ -53,7 +53,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
             StreamObserver<TotalOrderedBroadcast.Empty> totalOrderBroadcastMessageObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {
                 @Override
                 public void onNext(TotalOrderedBroadcast.Empty empty) {
-                    logger.info("In server onNext" + empty.getLamportClock());
+                    logger.debug("In server onNext" + empty.getLamportClock());
                 }
 
                 @Override
@@ -64,13 +64,13 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
                 @Override
                 public void onCompleted() {
-                    logger.info("In server onCompleted");
+                    logger.debug("In server onCompleted");
                     countDownLatch.countDown();
                 }
             };
 
             stub.withWaitForReady().receiveBroadcastMessage(request, totalOrderBroadcastMessageObserver);
-            logger.info("Sending messages executed for " + request.getLamportClock());
+            logger.debug("Sending messages executed for " + request.getLamportClock());
         }
         try {
             countDownLatch.await();
@@ -113,7 +113,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
      */
     private void sendAck() {
 
-        logger.info("acknowledgement counts before sending ack " + acknowledgementCountMap.toString());
+        logger.debug("acknowledgement counts before sending ack " + acknowledgementCountMap.toString());
         if (!queue.isEmpty() && !queue.peek().isAcknowledgementPublished()) {
 
             final CountDownLatch countDownLatch = new CountDownLatch(NUMBER_OF_PROCESSES);
@@ -128,23 +128,23 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 StreamObserver<TotalOrderedBroadcast.Empty> emptyStreamObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {
                     @Override
                     public void onNext(TotalOrderedBroadcast.Empty empty) {
-                        logger.info("In server send Ack onNext" + empty.getLamportClock());
+                        logger.debug("In server send Ack onNext" + empty.getLamportClock());
                     }
 
                     @Override
                     public void onError(Throwable throwable) {
-                        logger.info(throwable.getMessage());
+                        logger.debug(throwable.getMessage());
                         countDownLatch.countDown();
                     }
 
                     @Override
                     public void onCompleted() {
-                        logger.info("In server send Ack onCompleted");
+                        logger.debug("In server send Ack onCompleted");
                         countDownLatch.countDown();
                     }
                 };
                 stub.receiveAck(ackMessage, emptyStreamObserver);
-                logger.info("Sending ack executed");
+                logger.debug("Sending ack executed");
             }
             queue.peek().setAcknowledgementPublished(true);
             try {
@@ -165,7 +165,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
     public void receiveAck(final TotalOrderedBroadcast.AckMessage request,
                            final StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
 
-        logger.info("acknowledgement received for message" + request.getBroadcastMessage().getLamportClock());
+        logger.debug("acknowledgement received for message" + request.getBroadcastMessage().getLamportClock());
         String key = request.getBroadcastMessage().getLamportClock();
         int count = acknowledgementCountMap.getOrDefault(key, 0) + 1;
         acknowledgementCountMap.put(key, count);
@@ -177,8 +177,8 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 lamportClockToMessageMap.remove(key);
                 acknowledgementCountMap.remove(key);
 
-                logger.info("All acknowledgements received for message " + key);
-                logger.info("Delivering message to Application");
+                logger.debug("All acknowledgements received for message " + key);
+                logger.debug("Delivering message to Application");
 
                 ManagedChannel channel = ManagedChannelBuilder
                         .forAddress("localhost", 7004)
@@ -192,17 +192,17 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                         new StreamObserver<TotalOrderedBroadcast.Empty>() {
                             @Override
                             public void onNext(TotalOrderedBroadcast.Empty broadcastMessage) {
-                                logger.info("on next after delivering the message to the controller application");
+                                logger.debug("on next after delivering the message to the controller application");
                             }
 
                             @Override
                             public void onError(Throwable throwable) {
-                                logger.info("Error delivering the message to the controller application!!" + throwable.getMessage());
+                                logger.debug("Error delivering the message to the controller application!!" + throwable.getMessage());
                             }
 
                             @Override
                             public void onCompleted() {
-                                logger.info("Completed delivering the message to the controller application!!");
+                                logger.debug("Completed delivering the message to the controller application!!");
                             }
                         };
                 /* For most requests request to controller was being cancelled.
