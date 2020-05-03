@@ -80,13 +80,13 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }else{
             responseObserver.onError(new Exception("Unimplemented consistency option"));
         }
+        logger.info("Controller timestamp: "+this.requestId);
     }
 
 
 
         @Override
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
-
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
         if(consistencyImpl.isPresent()) {
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
@@ -100,6 +100,8 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             Controller.WriteResponse response = consistencyImpl.get().write(consistencyRequest);
             responseObserver.onNext(response);
             responseObserver.onCompleted();
+            processPendingGetRequests();
+
         }else{
             responseObserver.onError(new Exception("Unimplemented consistency option"));
         }
@@ -126,14 +128,12 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         synchronized (this){
             this.requestId = Math.max(this.requestId,getClientTimeStamp(request.getTimeStamp()));
             this.requestId += 1;
-            processPendingGetRequests();
         }
         return appConfig.controllerId+"."+requestId;
     }
 
     private void processPendingGetRequests() {
         while(!pendingGetRequestsQueue.isEmpty() && getClientTimeStamp(pendingGetRequestsQueue.peek().getTimeStamp()) <= this.requestId){
-                Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(Controller.ConsistencyLevel.CAUSAL);
                 synchronized (this){
                     Controller.ReadRequest request= pendingGetRequestsQueue.poll();
                     StreamObserver<Controller.ReadResponse> responseObserver = pendingGetRequestsMap.get(request);
