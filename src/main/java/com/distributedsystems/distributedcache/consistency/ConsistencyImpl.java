@@ -8,7 +8,6 @@ import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrdere
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +78,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
     protected TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub getTOBClient(){
 
         String tobHost = appConfig.tobHost;
-        int tobPort = appConfig.tobPort;
+        int tobPort = appConfig.grpcPort;
         ManagedChannel channel = ManagedChannelBuilder.forAddress(tobHost, tobPort).usePlaintext().build();
         return TotalOrderBroadcastServiceGrpc.newBlockingStub(channel);
     }

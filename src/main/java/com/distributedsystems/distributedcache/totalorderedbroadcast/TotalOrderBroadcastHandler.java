@@ -1,5 +1,7 @@
 package com.distributedsystems.distributedcache.totalorderedbroadcast;
 
+import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
+import com.distributedsystems.distributedcache.controller.Controller;
 import com.distributedsystems.distributedcache.controller.ControllerServiceGrpc;
 import com.distributedsystems.distributedcache.dto.TotalOrderedBroadcastMessage;
 import io.grpc.Context;
@@ -9,6 +11,7 @@ import io.grpc.stub.StreamObserver;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,7 +22,12 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceImplBase {
 
     private static final Logger logger = LoggerFactory.getLogger(TotalOrderBroadcastHandler.class);
-    private int NUMBER_OF_PROCESSES = 1; // will be changed to read from application.properties
+
+    @Autowired
+    ControllerConfigurations appConfig;
+
+    @Autowired
+    ClientStubs clientStubs;
 
     private HashMap<String, TotalOrderedBroadcastMessage> lamportClockToMessageMap =
             new HashMap<String, TotalOrderedBroadcastMessage>();
@@ -46,9 +54,9 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
     public void sendBroadcastMessage(final TotalOrderedBroadcast.BroadcastMessage request,
                                      final StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
 
-        final CountDownLatch countDownLatch = new CountDownLatch(NUMBER_OF_PROCESSES);
+        final CountDownLatch countDownLatch = new CountDownLatch(appConfig.numOfServers);
 
-        for (final TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : ClientStubs.getInstance().getStubs()) {
+        for (final TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : clientStubs.getStubs()) {
 
             StreamObserver<TotalOrderedBroadcast.Empty> totalOrderBroadcastMessageObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {
                 @Override
@@ -116,14 +124,14 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
         logger.info("acknowledgement counts before sending ack " + acknowledgementCountMap.toString());
         if (!queue.isEmpty() && !queue.peek().isAcknowledgementPublished()) {
 
-            final CountDownLatch countDownLatch = new CountDownLatch(NUMBER_OF_PROCESSES);
+            final CountDownLatch countDownLatch = new CountDownLatch(appConfig.numOfServers);
 
             TotalOrderedBroadcast.AckMessage ackMessage = TotalOrderedBroadcast.AckMessage.newBuilder()
                     .setBroadcastMessage(queue.peek().getBroadcastMessage())
                     .setIsAcknowledgementPublished(true)
                     .build();
 
-            for (TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : ClientStubs.getInstance().getStubs()) {
+            for (TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : clientStubs.getStubs()) {
 
                 StreamObserver<TotalOrderedBroadcast.Empty> emptyStreamObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {
                     @Override
@@ -167,10 +175,16 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
         logger.info("acknowledgement received for message" + request.getBroadcastMessage().getLamportClock());
         String key = request.getBroadcastMessage().getLamportClock();
-        int count = acknowledgementCountMap.getOrDefault(key, 0) + 1;
+        final int count = acknowledgementCountMap.getOrDefault(key, 0) + 1;
         acknowledgementCountMap.put(key, count);
 
-        if (acknowledgementCountMap.get(key) >= NUMBER_OF_PROCESSES) {
+        int numOfServers = appConfig.numOfServers;
+
+        if (Controller.ConsistencyLevel.EVENTUAL == getConsistencyLevel(appConfig.consistency)) {
+            numOfServers = numOfServers / 2;
+        }
+
+        if (acknowledgementCountMap.get(key) >= numOfServers) {
             if (!queue.isEmpty()) {
 
                 queue.remove(lamportClockToMessageMap.get(key));
@@ -181,9 +195,12 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 logger.info("Delivering message to Application");
 
                 ManagedChannel channel = ManagedChannelBuilder
-                        .forAddress("localhost", 7004)
+                        .forAddress(appConfig.tobHost, appConfig.grpcPort)
                         .usePlaintext()
                         .build();
+
+//                ControllerServiceGrpc.ControllerServiceBlockingStub controllerServiceBlockingStub =
+//                        ControllerServiceGrpc.newBlockingStub(channel);
 
                 ControllerServiceGrpc.ControllerServiceStub controllerServiceStub =
                         ControllerServiceGrpc.newStub(channel);
@@ -208,6 +225,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 /* For most requests request to controller was being cancelled.
                   Fixed the issue of context cancelling by forking the context before sending the request to controller.
                  */
+//                controllerServiceBlockingStub.withWaitForReady().handleMessageRequest(request.getBroadcastMessage());
                 Context.current().fork().run(()-> {
                             controllerServiceStub.withWaitForReady().handleMessageRequest(request.getBroadcastMessage()
                                     , broadcastMessageStreamResponse);
@@ -219,5 +237,21 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
         }
         responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
         responseObserver.onCompleted();
+    }
+
+    private com.distributedsystems.distributedcache.controller.Controller.ConsistencyLevel getConsistencyLevel(String consistency) {
+
+        switch (consistency) {
+            case "sequential":
+                return com.distributedsystems.distributedcache.controller.Controller.ConsistencyLevel.SEQUENTIAL;
+            case "eventual":
+                return com.distributedsystems.distributedcache.controller.Controller.ConsistencyLevel.EVENTUAL;
+            case "linearizability":
+                return com.distributedsystems.distributedcache.controller.Controller.ConsistencyLevel.LINEARIZABILITY;
+            case "causal":
+                return com.distributedsystems.distributedcache.controller.Controller.ConsistencyLevel.CAUSAL;
+            default:
+                return Controller.ConsistencyLevel.DEFAULT;
+        }
     }
 }

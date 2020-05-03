@@ -141,7 +141,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
     }
 
     private int getClientTimeStamp(String lamportTimeStamp){
-        String[] clientTimeStamp = lamportTimeStamp.split(".");
+        String[] clientTimeStamp = lamportTimeStamp.split("\\.");
         return Integer.parseInt(clientTimeStamp[0]);
     }
 
