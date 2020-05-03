@@ -30,7 +30,7 @@ public class DistributedcacheApplication {
 
         server.start();
 
-        logger.info("Server started at port: " + server.getPort());
+        logger.info("Total order broadcast server started at port: " + server.getPort());
 
         server.awaitTermination();
 
