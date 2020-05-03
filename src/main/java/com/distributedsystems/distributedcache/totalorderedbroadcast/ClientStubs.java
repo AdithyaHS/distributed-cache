@@ -1,10 +1,13 @@
 package com.distributedsystems.distributedcache.totalorderedbroadcast;
 
+import com.distributedsystems.distributedcache.Utilities.Utils;
 import com.distributedsystems.distributedcache.configuration.Configuration;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -41,7 +44,7 @@ public class ClientStubs {
                     .forAddress(address[0].trim(), Integer.valueOf(address[1]))
                     .usePlaintext()
                     .build();
-
+            logger.info("Created a stub for host:" + address[0].trim() + "port:" + address[1]);
             TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = TotalOrderBroadcastServiceGrpc
                     .newStub(channel);
 

@@ -1,5 +1,10 @@
 # Distributed-Cache
 
+## Steps to run
+- mvn clean install
+- docker-compose.yml
+
+
 ## Introduction
 The aim to this project is to implement distributed cache like redis.  A distributed cache is split across multiple 
 systems and a way of providing faster access to the contents of the database. Distributed cache should provide good 

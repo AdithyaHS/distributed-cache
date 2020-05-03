@@ -1,6 +1,7 @@
 package com.distributedsystems.distributedcache.controller;
 
 import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
+import com.distributedsystems.distributedcache.Utilities.Utils;
 import com.distributedsystems.distributedcache.consistency.BroadcastStatus;
 import com.distributedsystems.distributedcache.consistency.ConsistencyImplInterface;
 import com.distributedsystems.distributedcache.consistency.ConsistencyRequest;
@@ -28,6 +29,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Autowired
     ConsistencyResolver consistencyResolver;
+
+    @Autowired
+    Utils utils;
 
     private int requestId;
     private HashMap<String, BroadcastStatus> pendingRequests = new HashMap<>();
@@ -87,7 +91,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             consistencyRequest.setValue(request.getValue());
             consistencyRequest.setPendingRequests(pendingRequests);
             if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL))
-                consistencyRequest.setLamportClock(getLamportClock(request));
+                consistencyRequest.setLamportClock(getLamportClock());
             else
                 consistencyRequest.setLamportClock(String.valueOf(this.requestId));
             Controller.WriteResponse response = consistencyImpl.get().write(consistencyRequest);
@@ -98,18 +102,14 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }
     }
 
-
-
-    @Override
-    public void broadcastRequestAcknowledgement(Controller.Ack request, StreamObserver<Controller.broadcastRequestAcknowledgementResponse> responseObserver) {
+    public void unblockController(ConsistencyRequest request) {
+        logger.info("Got a broadcast ack for request: " + request.getLamportClock());
         if(pendingRequests.containsKey(request.getLamportClock())) {
+            logger.info("Unblocking client for request: " + request.getLamportClock());
             BroadcastStatus status = pendingRequests.get(request.getLamportClock());
-            status.setValue(request.getValueRead());
+            status.setValue(request.getValue());
             status.setCompletedAndNotify(true);
         }
-
-        responseObserver.onNext(Controller.broadcastRequestAcknowledgementResponse.newBuilder().build());
-        responseObserver.onCompleted();
     }
 
     private String getLamportClock(){
@@ -147,8 +147,19 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Override
     public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
-        logger.info("Message received!!!! " + request.getLamportClock() + " key:" + request.getKey());
+        logger.info("Received ack for broadcast request: " + request.getLamportClock());
+        ConsistencyRequest response = new ConsistencyRequest();
+        response.setLamportClock(request.getLamportClock());
+        if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.GET)){
+           String value = utils.readFromRedis(request.getKey());
+            response.setValue(value);
 
+        }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
+            utils.writeToRedis(request.getKey(), request.getValue());
+        }
+        unblockController(response);
+        responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
+        responseObserver.onCompleted();
     }
 
 }
