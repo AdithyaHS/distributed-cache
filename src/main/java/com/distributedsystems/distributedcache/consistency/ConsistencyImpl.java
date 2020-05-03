@@ -62,6 +62,7 @@ public class ConsistencyImpl implements ConsistencyImplInterface {
 
         TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub client = getTOBClient();
         try{
+            logger.info("Sending a broadcast request to the tob server for request" + request.getLamportClock());
             TotalOrderedBroadcast.Empty broadcastResponse = client.sendBroadcastMessage(builder.build());
             BroadcastStatus status = new BroadcastStatus();
             request.getPendingRequests().put(request.getLamportClock(), status);

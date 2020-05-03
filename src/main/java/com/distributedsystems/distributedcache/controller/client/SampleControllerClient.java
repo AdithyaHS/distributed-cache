@@ -22,34 +22,36 @@ public class SampleControllerClient {
          */
         //Testing eventual consistency local write and local read
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
-        Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
-        System.out.println(response.getSuccess());
-        Controller.ReadResponse readResponse = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
-        System.out.println(readResponse.getValue());
+//        Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+//        System.out.println(response.getSuccess());
+//        Controller.ReadResponse readResponse = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+//        System.out.println(readResponse.getValue());
+
+        //Testing for sequential consistency for broadcast write
         stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
-        //stub.broadcastRequestAcknowledgement(Controller.Ack.newBuilder().setLamportClock("1.1").build());
 
-        // example asyn stub. CLient should use this only when it wants to do some work in the background
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
-        ControllerServiceGrpc.ControllerServiceStub asynStub = ControllerServiceGrpc.newStub(channel);
-        StreamObserver<Controller.ReadResponse> controllerResponse = new StreamObserver<Controller.ReadResponse>() {
-            @Override
-            public void onNext(Controller.ReadResponse readResponse) {
-                System.out.println("This is asyn resposne " + readResponse.getValue());
-            }
 
-            @Override
-            public void onError(Throwable throwable) {
-                System.out.println("Error" + throwable.getMessage());
-            }
-
-            @Override
-            public void onCompleted() {
-                System.out.println("Done");
-            }
-        };
-        asynStub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build(), controllerResponse);
-        //need to sleep to see the results before the program exists
-        sleep(1000);
+        // example async stub. Client should use this only when it wants to do some work in the background
+//        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
+//        ControllerServiceGrpc.ControllerServiceStub asynStub = ControllerServiceGrpc.newStub(channel);
+//        StreamObserver<Controller.ReadResponse> controllerResponse = new StreamObserver<Controller.ReadResponse>() {
+//            @Override
+//            public void onNext(Controller.ReadResponse readResponse) {
+//                System.out.println("This is asyn resposne " + readResponse.getValue());
+//            }
+//
+//            @Override
+//            public void onError(Throwable throwable) {
+//                System.out.println("Error" + throwable.getMessage());
+//            }
+//
+//            @Override
+//            public void onCompleted() {
+//                System.out.println("Done");
+//            }
+//        };
+//        asynStub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build(), controllerResponse);
+//        //need to sleep to see the results before the program exists
+//        sleep(1000);
     }
 }
