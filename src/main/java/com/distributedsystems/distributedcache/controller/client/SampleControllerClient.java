@@ -29,7 +29,7 @@ public class SampleControllerClient {
         stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.SEQUENTIAL).build());
         //stub.broadcastRequestAcknowledgement(Controller.Ack.newBuilder().setLamportClock("1.1").build());
 
-        // example asyn stub. CLient should use this only when it wants to do some work in the background
+        // example async stub. Client should use this only when it wants to do some work in the background
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
         ControllerServiceGrpc.ControllerServiceStub asynStub = ControllerServiceGrpc.newStub(channel);
         StreamObserver<Controller.ReadResponse> controllerResponse = new StreamObserver<Controller.ReadResponse>() {

@@ -52,7 +52,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
             consistencyRequest.setKey(request.getKey());
             consistencyRequest.setPendingRequests(pendingRequests);
-            if(!request.getConsistencyLevel().equals("4")) {
+            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL)) {
                 consistencyRequest.setLamportClock(getLamportClock());
                 Controller.ReadResponse response = consistencyImpl.get().read(consistencyRequest);
                 responseObserver.onNext(response);
@@ -75,7 +75,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }
     }
 
-    @Override
+
+
+        @Override
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
 
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
@@ -84,7 +86,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             consistencyRequest.setKey(request.getKey());
             consistencyRequest.setValue(request.getValue());
             consistencyRequest.setPendingRequests(pendingRequests);
-            if(!request.getConsistencyLevel().equals("4"))
+            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL))
                 consistencyRequest.setLamportClock(getLamportClock(request));
             else
                 consistencyRequest.setLamportClock(String.valueOf(this.requestId));
@@ -129,10 +131,12 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
     private void processPendingGetRequests() {
         while(!pendingGetRequestsQueue.isEmpty() && getClientTimeStamp(pendingGetRequestsQueue.peek().getTimeStamp()) <= this.requestId){
                 Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(Controller.ConsistencyLevel.CAUSAL);
-                Controller.ReadRequest request= pendingGetRequestsQueue.poll();
-                StreamObserver<Controller.ReadResponse> responseObserver = pendingGetRequestsMap.get(request);
-                pendingGetRequestsMap.remove(request);
-                this.get(request,responseObserver);
+                synchronized (this){
+                    Controller.ReadRequest request= pendingGetRequestsQueue.poll();
+                    StreamObserver<Controller.ReadResponse> responseObserver = pendingGetRequestsMap.get(request);
+                    pendingGetRequestsMap.remove(request);
+                    this.get(request,responseObserver);
+                }
         }
     }
 
@@ -144,6 +148,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
     @Override
     public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
         logger.info("Message received!!!! " + request.getLamportClock() + " key:" + request.getKey());
+
     }
 
 }
