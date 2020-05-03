@@ -18,6 +18,9 @@ public class SampleControllerClient {
         * It is upto client of controller to decide whether use a blocking stub or a non blocking stub. Samples for both are provided.
          */
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
+
+
+
         //Testing eventual consistency local write and local read
         System.out.println("Testing for eventual consistency");
         Controller.WriteResponse response = stub.put(Controller.WriteRequest.newBuilder().setKey("a").setValue("1").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
@@ -41,6 +44,17 @@ public class SampleControllerClient {
 
         Controller.ReadResponse linearizabilityRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").build());
         System.out.println(linearizabilityRead.getValue());
+
+        //Testing for Causal broadcast write
+
+        System.out.println("Causal Consistency Test");
+        Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("3").setTimeStamp("1.1").build());
+        System.out.println("Write status: " + causalWrite.getSuccess());
+        //Testing for Causal local read
+        Controller.ReadResponse causalRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setTimeStamp("1.1").build());
+        System.out.println("Reading value of x:" + causalRead.getValue());
+
+
 //
 
         // example async stub. Client should use this only when it wants to do some work in the background
