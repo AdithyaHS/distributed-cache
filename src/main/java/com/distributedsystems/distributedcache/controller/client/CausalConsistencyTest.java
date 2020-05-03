@@ -29,14 +29,12 @@ public class CausalConsistencyTest {
             @Override
             public void onNext(Controller.WriteResponse writeResponse) {
                 logger.info("This is async write response " + writeResponse.getSuccess());
-                setFlag(true);
+                flag = true;
             }
-
             @Override
             public void onError(Throwable throwable) {
                 System.out.println("Error" + throwable.getMessage());
             }
-
             @Override
             public void onCompleted() {
                 logger.info(" Write Done");
@@ -46,34 +44,30 @@ public class CausalConsistencyTest {
         logger.info("Waiting");
         while (!flag){
             try {
-
                 sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-    }
-        setFlag(false);
-
+        }
+        flag = false;
+        logger.info("Starting Read Request");
         StreamObserver<Controller.ReadResponse> controllerResponse = new StreamObserver<Controller.ReadResponse>() {
             @Override
             public void onNext(Controller.ReadResponse readResponse) {
-                System.out.println("This is async resposne " + readResponse.getValue());
+                System.out.println("This is async response " + readResponse.getValue());
                 logger.info("Reading value of 'a': "+readResponse.getValue());
                 setFlag(true);
             }
-
             @Override
             public void onError(Throwable throwable) {
                 System.out.println("Error" + throwable.getMessage());
             }
-
             @Override
             public void onCompleted() {
                 System.out.println("Done");
             }
         };
-        stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setTimeStamp("1.1").build(),controllerResponse);
-
+        stub.get(Controller.ReadRequest.newBuilder().setKey("x").setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setTimeStamp("2.1").build(),controllerResponse);
         while (!flag){
             try {
                 sleep(1000);
@@ -81,10 +75,67 @@ public class CausalConsistencyTest {
                 e.printStackTrace();
             }
         }
-
+        flag = false;
+        logger.info("Second read request to start");
+        StreamObserver<Controller.ReadResponse> controllerResponse2 = new StreamObserver<Controller.ReadResponse>() {
+            @Override
+            public void onNext(Controller.ReadResponse readResponse) {
+                System.out.println("This is async response2 " + readResponse.getValue());
+                logger.info("Reading value of 'x': "+readResponse.getValue());
+                //setFlag(true);
+            }
+            @Override
+            public void onError(Throwable throwable) {
+                System.out.println("Error" + throwable.getMessage());
+            }
+            @Override
+            public void onCompleted() {
+                System.out.println("Done");
+            }
+        };
+        stub.get(Controller.ReadRequest.newBuilder().setKey("x").setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setTimeStamp("2.1").build(),controllerResponse2);
+        logger.info("Second write request to start");
+        StreamObserver<Controller.WriteResponse> writeResponse2 = new StreamObserver<Controller.WriteResponse>() {
+            @Override
+            public void onNext(Controller.WriteResponse writeResponse) {
+                logger.info("This is async write2 response " + writeResponse.getSuccess());
+                //setFlag(true);
+            }
+            @Override
+            public void onError(Throwable throwable) {
+                System.out.println("Error" + throwable.getMessage());
+            }
+            @Override
+            public void onCompleted() {
+                logger.info(" Write2 Done");
+            }
+        };
+        stub.put(Controller.WriteRequest.newBuilder().setKey("x").setValue("6").setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setTimeStamp("2.1").build(), writeResponse2);
+        while (!flag){
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void setFlag(boolean b) {
         flag = b;
     }
+    public static void wait(boolean flag){
+        while (!flag){
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

@@ -64,11 +64,14 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             }
             else {
                 consistencyRequest.setLamportClock(String.valueOf(this.requestId));
+                logger.info("time stamp: "+request.getTimeStamp());
                 if (getClientTimeStamp(request.getTimeStamp()) > this.requestId) {
+                    logger.info("In if "+this.requestId);
                     pendingGetRequestsQueue.offer(request);
                     pendingGetRequestsMap.put(request, responseObserver);
                 }
                 else{
+                    logger.info("In else "+this.requestId);
                     Controller.ReadResponse response = consistencyImpl.get().read(consistencyRequest);
                     responseObserver.onNext(response);
                     responseObserver.onCompleted();
@@ -93,7 +96,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL))
                 consistencyRequest.setLamportClock(getLamportClock());
             else
-                consistencyRequest.setLamportClock(String.valueOf(this.requestId));
+                consistencyRequest.setLamportClock(getLamportClock(request));
             Controller.WriteResponse response = consistencyImpl.get().write(consistencyRequest);
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -153,7 +156,6 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.GET)){
            String value = utils.readFromRedis(request.getKey());
             response.setValue(value);
-
         }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
             utils.writeToRedis(request.getKey(), request.getValue());
         }
