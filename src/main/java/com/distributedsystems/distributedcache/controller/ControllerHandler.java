@@ -1,6 +1,7 @@
 package com.distributedsystems.distributedcache.controller;
 
 import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
+import com.distributedsystems.distributedcache.Utilities.Utils;
 import com.distributedsystems.distributedcache.consistency.BroadcastStatus;
 import com.distributedsystems.distributedcache.consistency.ConsistencyImplInterface;
 import com.distributedsystems.distributedcache.consistency.ConsistencyRequest;
@@ -28,6 +29,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Autowired
     ConsistencyResolver consistencyResolver;
+
+    @Autowired
+    Utils utils;
 
     private int requestId;
     private HashMap<String, BroadcastStatus> pendingRequests = new HashMap<>();
@@ -143,7 +147,15 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Override
     public void handleMessageRequest(TotalOrderedBroadcast.BroadcastMessage request, StreamObserver<TotalOrderedBroadcast.Empty> responseObserver) {
-        logger.info("Message received!!!! " + request.getLamportClock() + " key:" + request.getKey());
+        if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.GET)){
+            utils.readFromRedis(request.getKey());
+            responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+        }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
+            utils.writeToRedis(request.getKey(), request.getValue());
+            responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+        }
     }
 
 }
