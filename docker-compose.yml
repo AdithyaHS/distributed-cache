@@ -14,20 +14,20 @@ services:
       - controller.id=1
       - redis.port=6379
       - redis.host=redis1
-#  redis2:
-#    image: redis:3.2-alpine
-#    ports:
-#      - 6380:6380
-#  controller2:
-#    build: .
-#    ports:
-#      - 7005:7005
-#    environment:
-#      - grpc.port=7005
-#      - tob.port=7005
-#      - controller.id=2
-#      - redis.port=6380
-#      - redis.host=redis2
+  redis2:
+    image: redis:3.2-alpine
+    ports:
+      - 6379:6380
+  controller2:
+    build: .
+    ports:
+      - 7005:7005
+    environment:
+      - grpc.port=7005
+      - tob.port=7005
+      - controller.id=2
+      - redis.port=6380
+      - redis.host=redis2
 #  redis3:
 #    image: redis:3.2-alpine
 #    ports:
