@@ -58,6 +58,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             consistencyRequest.setPendingRequests(pendingRequests);
             if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL)) {
                 consistencyRequest.setLamportClock(getLamportClock());
+                consistencyRequest.setClientTimeStamp(request.getTimeStamp());
                 Controller.ReadResponse response = consistencyImpl.get().read(consistencyRequest);
                 responseObserver.onNext(response);
                 responseObserver.onCompleted();
@@ -93,11 +94,16 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             consistencyRequest.setKey(request.getKey());
             consistencyRequest.setValue(request.getValue());
             consistencyRequest.setPendingRequests(pendingRequests);
-            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL))
+            if(!request.getConsistencyLevel().equals(Controller.ConsistencyLevel.CAUSAL)){
+                consistencyRequest.setClientTimeStamp("");
                 consistencyRequest.setLamportClock(getLamportClock());
-            else
+            }
+            else{
+                consistencyRequest.setClientTimeStamp(request.getTimeStamp());
                 consistencyRequest.setLamportClock(getLamportClock(request));
+            }
             Controller.WriteResponse response = consistencyImpl.get().write(consistencyRequest);
+            System.out.println(response.getTimeStamp());
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             processPendingGetRequests();
@@ -158,10 +164,21 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             response.setValue(value);
         }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
             utils.writeToRedis(request.getKey(), request.getValue());
+            logger.info("In handle request. The client timestamp is: "+request.getClientTimeStamp());
+            if(request.getClientTimeStamp().length() > 1){
+               String clientsUpdatedTimeStamp = this.requestId+"."+getClientId(request.getClientTimeStamp());
+               response.setClientTimeStamp(clientsUpdatedTimeStamp);
+            }
+
         }
         unblockController(response);
         responseObserver.onNext(TotalOrderedBroadcast.Empty.newBuilder().build());
         responseObserver.onCompleted();
     }
+
+    private String getClientId(String clientTimeStamp) {
+        return clientTimeStamp.split("\\.")[1];
+    }
+
 
 }

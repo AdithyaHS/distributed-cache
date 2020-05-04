@@ -22,7 +22,7 @@ ADD . /app
 WORKDIR /app
 #RUN apt-get update
 #RUN apt-get -y install netcat
-RUN mvn clean install
+#RUN mvn clean install
 ARG JAR_FILE=/target/*.jar
 COPY ${JAR_FILE} /app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]

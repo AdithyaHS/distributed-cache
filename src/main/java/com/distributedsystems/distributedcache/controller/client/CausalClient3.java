@@ -21,23 +21,23 @@ public class CausalClient3 {
     }
 
     public static void main(String[] args) {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
-        ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
-        System.out.println("Causal Consistency Test");
-        Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("6").setTimeStamp("5.3").build());
-        System.out.println("Write status: " + causalWrite.getSuccess());
-        try {
-            sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
+//        ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
+//        System.out.println("Causal Consistency Test");
+//        Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("6").setTimeStamp("5.3").build());
+//        System.out.println("Write status: " + causalWrite.getSuccess()+"  timestamp: "+ causalWrite.getTimeStamp());
+//        try {
+//            sleep(100);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         //Testing for Causal local read
-        Controller.ReadResponse causalRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setTimeStamp("5.3").build());
-        System.out.println("Reading value of x:" + causalRead.getValue());
+        //Controller.ReadResponse causalRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setTimeStamp("5.3").build());
+        //System.out.println("Reading value of x:" + causalRead.getValue());
 
 
 
-        /*
+
         //Async call
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 7004).usePlaintext().build();
         ControllerServiceGrpc.ControllerServiceStub stub = ControllerServiceGrpc.newStub(channel);
@@ -45,7 +45,7 @@ public class CausalClient3 {
         StreamObserver<Controller.WriteResponse> writeResponse2 = new StreamObserver<Controller.WriteResponse>() {
             @Override
             public void onNext(Controller.WriteResponse writeResponse) {
-                logger.info("This is async write2 response " + writeResponse.getSuccess());
+                logger.info("This is async write2 response " + writeResponse.getSuccess()+" client's new time stamp: "+writeResponse.getTimeStamp());
                 setFlag(true);
             }
             @Override
@@ -65,7 +65,7 @@ public class CausalClient3 {
                 e.printStackTrace();
             }
         }
-        */
+
     }
 
 

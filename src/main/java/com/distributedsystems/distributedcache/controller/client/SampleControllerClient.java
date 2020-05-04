@@ -19,6 +19,14 @@ public class SampleControllerClient {
          */
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
 
+//Testing for Causal broadcast write
+
+        System.out.println("Causal Consistency Test");
+        Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("3").setTimeStamp("1.1").build());
+        System.out.println("Write status: " + causalWrite.getSuccess()+  "time stamp: "+causalWrite.getTimeStamp());
+        //Testing for Causal local read
+        Controller.ReadResponse causalRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setTimeStamp("1.1").build());
+        System.out.println("Reading value of x:" + causalRead.getValue());
 
 
         //Testing eventual consistency local write and local read
@@ -45,14 +53,6 @@ public class SampleControllerClient {
         Controller.ReadResponse linearizabilityRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").build());
         System.out.println(linearizabilityRead.getValue());
 
-        //Testing for Causal broadcast write
-
-        System.out.println("Causal Consistency Test");
-        Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("3").setTimeStamp("1.1").build());
-        System.out.println("Write status: " + causalWrite.getSuccess());
-        //Testing for Causal local read
-        Controller.ReadResponse causalRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setTimeStamp("1.1").build());
-        System.out.println("Reading value of x:" + causalRead.getValue());
 
 
 //

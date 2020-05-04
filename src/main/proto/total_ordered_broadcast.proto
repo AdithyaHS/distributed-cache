@@ -12,6 +12,7 @@ message BroadcastMessage {
     string lamportClock = 2;
     string key = 3;
     string value = 4;
+    string clientTimeStamp= 5;
 }
 
 message AckMessage {
