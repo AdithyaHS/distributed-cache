@@ -30,18 +30,19 @@ public class ClientStubs {
      */
     @Autowired
     public ClientStubs(ControllerConfigurations appConfig) {
-        HashMap<String, String> config = Configuration.getInstance().readConfig();
+        //HashMap<String, String> config = Configuration.getInstance().readConfig();
 
-        ControllerConfigurations controllerConfigurations = new ControllerConfigurations();
+        //ControllerConfigurations appConfig = new ControllerConfigurations();
 
 
-        logger.debug(config.toString());
+        //logger.debug(config.toString());
 
         String ipAddress = getIpAddress().trim();
+        logger.info("Tob servers are----------- " + appConfig.tobServers);
+        String[] servers = appConfig.tobServers.split(",");
+        for (String server : servers) {
 
-        for (Map.Entry<String, String> entry : config.entrySet()) {
-
-            String[] address = entry.getValue().split(":");
+            String[] address = server.split(":");
 
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(address[0].trim(), Integer.valueOf(address[1]))
