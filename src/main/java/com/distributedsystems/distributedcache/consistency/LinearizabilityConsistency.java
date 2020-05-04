@@ -29,15 +29,14 @@ public class LinearizabilityConsistency extends ConsistencyImpl {
         builder.setLamportClock(request.getLamportClock());
 
         TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceBlockingStub client = super.getTOBClient();
+        BroadcastStatus status = new BroadcastStatus();
+        request.getPendingRequests().put(request.getLamportClock(), status);
         try{
             TotalOrderedBroadcast.Empty broadcastResponse = client.withWaitForReady().sendBroadcastMessage(builder.build());
         }catch (StatusRuntimeException e){
             logger.error(e.getMessage());
             return Controller.ReadResponse.newBuilder().setSuccess(false).build();
         }
-
-        BroadcastStatus status = new BroadcastStatus();
-        request.getPendingRequests().put(request.getLamportClock(), status);
         waitUntilBroadcastIsCompleted(status);
         return Controller.ReadResponse.newBuilder().setValue(status.getValue()).setSuccess(true).build();
     }
