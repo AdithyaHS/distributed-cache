@@ -2,7 +2,7 @@
 
 ## Steps to run
 - mvn clean install
-- docker-compose.yml
+- docker-compose up -d --build
 
 
 ## Introduction

@@ -22,4 +22,6 @@ public class ControllerConfigurations {
     public int numOfServers;
     @org.springframework.beans.factory.annotation.Value("${consistency}")
     public String consistency;
+    @org.springframework.beans.factory.annotation.Value("${tob.servers}")
+    public String tobServers;
 }

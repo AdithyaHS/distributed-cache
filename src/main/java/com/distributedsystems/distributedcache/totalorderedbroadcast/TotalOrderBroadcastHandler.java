@@ -59,6 +59,9 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
         final CountDownLatch countDownLatch = new CountDownLatch(appConfig.numOfServers);
 
+        logger.info("How many number of tob stubs" + Integer.toString(clientStubs.getStubs().size()));
+        logger.info(clientStubs.getStubs().toString());
+
         for (final TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : clientStubs.getStubs()) {
 
             StreamObserver<TotalOrderedBroadcast.Empty> totalOrderBroadcastMessageObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {

@@ -1,14 +1,14 @@
-package com.distributedsystems.distributedcache.controller.client;
-
-import com.distributedsystems.distributedcache.totalorderedbroadcast.ClientStubs;
-import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
-import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+//package com.distributedsystems.distributedcache.controller.client;
+//
+//import com.distributedsystems.distributedcache.totalorderedbroadcast.ClientStubs;
+//import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderBroadcastServiceGrpc;
+//import com.distributedsystems.distributedcache.totalorderedbroadcast.TotalOrderedBroadcast;
+//import io.grpc.ManagedChannel;
+//import io.grpc.ManagedChannelBuilder;
+//import io.grpc.stub.StreamObserver;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//
 public class TotalOrderedBroadcastClient {
 //
 //    private static final Logger logger = LoggerFactory.getLogger(TotalOrderedBroadcastClient.class);
@@ -19,6 +19,8 @@ public class TotalOrderedBroadcastClient {
 //         */
 //       // ClientStubs clientStub = ClientStubs.getInstance();
 //        //TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = clientStub.getCurrentTOBStub();
+//        ClientStubs clientStub = ClientStubs.getInstance();
+//        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = clientStub.getCurrentTOBStub();
 //
 //        /*
 //         * Example for sending one total order broadcast message.
@@ -64,3 +66,4 @@ public class TotalOrderedBroadcastClient {
 //        logger.info("after blocking");
 //    }
 }
+//}

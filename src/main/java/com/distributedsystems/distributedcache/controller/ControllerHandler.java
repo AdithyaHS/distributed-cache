@@ -99,8 +99,11 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
                 consistencyRequest.setLamportClock(getLamportClock());
             }
             else{
-                consistencyRequest.setClientTimeStamp(request.getTimeStamp());
                 consistencyRequest.setLamportClock(getLamportClock(request));
+                String clientsUpdatedTimeStamp = this.requestId+"."+getClientId(request.getTimeStamp());
+                consistencyRequest.setClientTimeStamp(clientsUpdatedTimeStamp);
+
+
             }
             Controller.WriteResponse response = consistencyImpl.get().write(consistencyRequest);
             System.out.println(response.getTimeStamp());
@@ -165,10 +168,10 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
         }else if(request.getTypeOfRequest().equals(TotalOrderedBroadcast.RequestType.PUT)){
             utils.writeToRedis(request.getKey(), request.getValue());
             logger.info("In handle request. The client timestamp is: "+request.getClientTimeStamp());
-            if(request.getClientTimeStamp().length() > 1){
-               String clientsUpdatedTimeStamp = this.requestId+"."+getClientId(request.getClientTimeStamp());
-               response.setClientTimeStamp(clientsUpdatedTimeStamp);
-            }
+//            if(request.getClientTimeStamp().length() > 1){
+//               String clientsUpdatedTimeStamp = this.requestId+"."+getClientId(request.getClientTimeStamp());
+//               response.setClientTimeStamp(clientsUpdatedTimeStamp);
+//            }
 
         }
         unblockController(response);

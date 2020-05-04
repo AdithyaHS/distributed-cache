@@ -25,7 +25,7 @@ public class CausalClient2 {
         ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
         System.out.println("Causal Consistency Test");
         Controller.WriteResponse causalWrite = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.CAUSAL).setKey("x").setValue("3").setTimeStamp("1.2").build());
-        System.out.println("Write status: " + causalWrite.getSuccess());
+        System.out.println("Write status: " + causalWrite.getSuccess()+ "  timestamp: "+causalWrite.getTimeStamp());
         try {
             sleep(1000);
         } catch (InterruptedException e) {
