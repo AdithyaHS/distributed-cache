@@ -1,6 +1,6 @@
 package com.distributedsystems.distributedcache.totalorderedbroadcast;
 
-import com.distributedsystems.distributedcache.Utilities.Utils;
+import com.distributedsystems.distributedcache.Utilities.ControllerConfigurations;
 import com.distributedsystems.distributedcache.configuration.Configuration;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -15,11 +15,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class ClientStubs {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientStubs.class);
-
-    private static ClientStubs ourInstance = new ClientStubs();
 
     private ArrayList<TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub> totalOrderBroadcastServiceStubs =
             new ArrayList<TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub>();
@@ -29,16 +28,21 @@ public class ClientStubs {
     /**
      * @description creates clients stubs
      */
-    private ClientStubs() {
-        HashMap<String, String> config = Configuration.getInstance().readConfig();
+    @Autowired
+    public ClientStubs(ControllerConfigurations appConfig) {
+        //HashMap<String, String> config = Configuration.getInstance().readConfig();
 
-        logger.debug(config.toString());
+        //ControllerConfigurations appConfig = new ControllerConfigurations();
+
+
+        //logger.debug(config.toString());
 
         String ipAddress = getIpAddress().trim();
+        logger.info("Tob servers are----------- " + appConfig.tobServers);
+        String[] servers = appConfig.tobServers.split(",");
+        for (String server : servers) {
 
-        for (Map.Entry<String, String> entry : config.entrySet()) {
-
-            String[] address = entry.getValue().split(":");
+            String[] address = server.split(":");
 
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(address[0].trim(), Integer.valueOf(address[1]))
@@ -48,7 +52,7 @@ public class ClientStubs {
             TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = TotalOrderBroadcastServiceGrpc
                     .newStub(channel);
 
-            if (address[0].trim().equals(ipAddress) && address[1].equals("1993")) {
+            if (address[0].trim().equals(ipAddress) && address[1].equals(appConfig.grpcPort)) {
                 currentClientTOBstub = stub;
             }
             totalOrderBroadcastServiceStubs.add(stub);
@@ -66,10 +70,6 @@ public class ClientStubs {
             e.printStackTrace();
         }
         return inetAddress.getHostAddress();
-    }
-
-    public static ClientStubs getInstance() {
-        return ourInstance;
     }
 
     public ArrayList<TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub> getStubs() {
