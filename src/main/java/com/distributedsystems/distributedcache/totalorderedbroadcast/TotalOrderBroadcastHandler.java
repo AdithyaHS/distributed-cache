@@ -39,8 +39,11 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
                 @Override
                 public int compare(TotalOrderedBroadcastMessage o1, TotalOrderedBroadcastMessage o2) {
-                    return Integer.parseInt(o1.getBroadcastMessage().getLamportClock()) -
-                            Integer.parseInt(o2.getBroadcastMessage().getLamportClock());
+                    if(Double.parseDouble(o1.getBroadcastMessage().getLamportClock()) >
+                            Double.parseDouble(o2.getBroadcastMessage().getLamportClock()))
+                        return 1;
+                    else
+                        return -1;
                 }
             });
 

@@ -8,6 +8,16 @@ public class ConsistencyRequest {
     private String value;
     private String key;
     private String lamportClock;
+    private String clientTimeStamp = "";
+
+    public String getClientTimeStamp() {
+        return clientTimeStamp;
+    }
+
+    public void setClientTimeStamp(String clientTimeStamp) {
+        this.clientTimeStamp = clientTimeStamp;
+    }
+
     private HashMap<String, BroadcastStatus> pendingRequests;
 
     public String getValue() {
