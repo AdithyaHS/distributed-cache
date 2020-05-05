@@ -65,9 +65,8 @@ public class SampleControllerClient {
                                 .setValue("3").build());
                 System.out.println(linearizabilityWrite.getSuccess());
 
-                // Controller.ReadResponse linearizabilityRead =
-                // stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").build());
-                // System.out.println(linearizabilityRead.getValue());
+        Controller.ReadResponse linearizabilityRead = stub.get(Controller.ReadRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").build());
+        System.out.println(linearizabilityRead.getValue());
 
                 Controller.WriteResponse linearizabilityWrite2 = stub.put(Controller.WriteRequest.newBuilder()
                                 .setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a")
