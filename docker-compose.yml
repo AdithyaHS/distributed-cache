@@ -2,8 +2,7 @@ version: '3.6'
 services:
   redis1:
     image: redis:3.2-alpine
-    ports:
-      - 6379:6379
+
   controller1:
     build: .
     ports:
@@ -14,31 +13,35 @@ services:
       - controller.id=1
       - redis.port=6379
       - redis.host=redis1
-#  redis2:
-#    image: redis:3.2-alpine
-#    ports:
-#      - 6380:6380
-#  controller2:
-#    build: .
-#    ports:
-#      - 7005:7005
-#    environment:
-#      - grpc.port=7005
-#      - tob.port=7005
-#      - controller.id=2
-#      - redis.port=6380
-#      - redis.host=redis2
-#  redis3:
-#    image: redis:3.2-alpine
-#    ports:
-#      - 6381:6381
-#  controller3:
-#    build: .
-#    ports:
-#      - 7006:7006
-#    environment:
-#      - grpc.port=7006
-#      - tob.port=7006
-#      - controller.id=3
-#      - redis.port=6381
-#      - redis.host=redis3
+      - num.of.servers=3
+      - tob.servers=controller1:7004, controller2:7005, controller3:7006
+  redis2:
+    image: redis:3.2-alpine
+
+  controller2:
+    build: .
+    ports:
+      - 7005:7005
+    environment:
+      - grpc.port=7005
+      - tob.port=7005
+      - controller.id=2
+      - redis.port=6379
+      - redis.host=redis2
+      - num.of.servers=3
+      - tob.servers=controller1:7004, controller2:7005, controller3:7006
+  redis3:
+    image: redis:3.2-alpine
+
+  controller3:
+    build: .
+    ports:
+      - 7006:7006
+    environment:
+      - grpc.port=7006
+      - tob.port=7006
+      - controller.id=3
+      - redis.port=6379
+      - redis.host=redis3
+      - num.of.servers=3
+      - tob.servers=controller1:7004, controller2:7005, controller3:7006

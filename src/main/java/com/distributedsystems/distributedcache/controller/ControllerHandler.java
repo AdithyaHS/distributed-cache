@@ -88,7 +88,7 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
     @Override
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
-        logger.info("Got a put request for key,value: " + request.getKey() + request.getValue());
+        logger.info("Got a put request for key, value: " + request.getKey() + request.getValue());
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
         if(consistencyImpl.isPresent()) {
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
