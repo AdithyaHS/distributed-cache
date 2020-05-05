@@ -41,16 +41,17 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             new Comparator<Controller.ReadRequest>() {
                 @Override
                 public int compare(Controller.ReadRequest o1, Controller.ReadRequest o2) {
-                    String[] r1 = o1.getTimeStamp().split("\\.");
-                    String[] r2 = o2.getTimeStamp().split("\\.");
-                    return Integer.parseInt(r1[0]) - Integer.parseInt(r2[0]);
+                    if (Double.parseDouble(o1.getTimeStamp()) < Double.parseDouble(o2.getTimeStamp())) {
+                        return 1;
+                    }
+                    return -1;
                 }
             }
     );
 
     @Override
     public void get(Controller.ReadRequest request, StreamObserver<Controller.ReadResponse> responseObserver) {
-
+        logger.info("Got a get request for key: " + request.getKey());
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
         if(consistencyImpl.isPresent()) {
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
@@ -86,8 +87,9 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
 
 
 
-        @Override
+    @Override
     public void put(Controller.WriteRequest request, StreamObserver<Controller.WriteResponse> responseObserver) {
+        logger.info("Got a put request for key, value: " + request.getKey() + request.getValue());
         Optional<ConsistencyImplInterface> consistencyImpl = consistencyResolver.resolveConsistency(request.getConsistencyLevel());
         if(consistencyImpl.isPresent()) {
             ConsistencyRequest consistencyRequest = new ConsistencyRequest();
