@@ -52,7 +52,8 @@ public class ClientStubs {
             TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = TotalOrderBroadcastServiceGrpc
                     .newStub(channel);
 
-            if (address[0].trim().equals(ipAddress) && address[1].equals(appConfig.grpcPort)) {
+            // if (address[0].trim().equals(ipAddress) && address[1].equals(appConfig.grpcPort)) {
+            if (address[1].equals(appConfig.grpcPort)){
                 currentClientTOBstub = stub;
             }
             totalOrderBroadcastServiceStubs.add(stub);

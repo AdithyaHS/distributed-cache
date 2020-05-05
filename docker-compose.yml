@@ -41,4 +41,6 @@ services:
 #      - tob.port=7006
 #      - controller.id=3
 #      - redis.port=6381
-#      - redis.host=redis3
+#      - redis.host=redis3      - num.of.servers=3
+      - tob.servers= controller1:7004, controller2:7005, controller3:7006
+      - consistency=causal
