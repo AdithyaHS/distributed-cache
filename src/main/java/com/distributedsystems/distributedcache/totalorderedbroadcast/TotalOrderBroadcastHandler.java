@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -32,7 +34,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
     private HashMap<String, TotalOrderedBroadcastMessage> lamportClockToMessageMap =
             new HashMap<String, TotalOrderedBroadcastMessage>();
 
-    private HashMap<String, Integer> acknowledgementCountMap = new HashMap<String, Integer>();
+    private Map<String, Integer> acknowledgementCountMap = new ConcurrentHashMap<String, Integer>();
 
     private PriorityBlockingQueue<TotalOrderedBroadcastMessage> queue = new PriorityBlockingQueue<TotalOrderedBroadcastMessage>
             (1000, new Comparator<TotalOrderedBroadcastMessage>() {
@@ -136,7 +138,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                     .setBroadcastMessage(queue.peek().getBroadcastMessage())
                     .setIsAcknowledgementPublished(true)
                     .build();
-
+            queue.peek().setAcknowledgementPublished(true);
             for (TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub : clientStubs.getStubs()) {
 
                 StreamObserver<TotalOrderedBroadcast.Empty> emptyStreamObserver = new StreamObserver<TotalOrderedBroadcast.Empty>() {
@@ -160,7 +162,6 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 stub.receiveAck(ackMessage, emptyStreamObserver);
                 logger.info("Sending ack executed");
             }
-            queue.peek().setAcknowledgementPublished(true);
             try {
                 countDownLatch.await();
             } catch (InterruptedException e) {
@@ -181,8 +182,11 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
         logger.info("acknowledgement received for message" + request.getBroadcastMessage().getLamportClock());
         String key = request.getBroadcastMessage().getLamportClock();
-        final int count = acknowledgementCountMap.getOrDefault(key, 0) + 1;
-        acknowledgementCountMap.put(key, count);
+        acknowledgementCountMap.putIfAbsent(key, 0);
+        int oldVal;
+        do {
+            oldVal = acknowledgementCountMap.get(key);
+        } while(!acknowledgementCountMap.replace(key, oldVal, oldVal+1));
 
         int numOfServers = appConfig.numOfServers;
 
