@@ -17,7 +17,7 @@ public class SampleControllerClient {
         /*
         * It is upto client of controller to decide whether use a blocking stub or a non blocking stub. Samples for both are provided.
          */
-        ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7004);
+        ControllerServiceGrpc.ControllerServiceBlockingStub stub= getControllerBlockingClient("localhost", 7006);
 
 
 
@@ -47,6 +47,10 @@ public class SampleControllerClient {
 
         Controller.WriteResponse linearizabilityWrite2 = stub.put(Controller.WriteRequest.newBuilder().setConsistencyLevel(Controller.ConsistencyLevel.LINEARIZABILITY).setKey("a").setValue("4").build());
         System.out.println(linearizabilityWrite2.getSuccess());
+
+        ControllerServiceGrpc.ControllerServiceBlockingStub stub2= getControllerBlockingClient("localhost", 7004);
+        Controller.ReadResponse readResponse2 = stub.get(Controller.ReadRequest.newBuilder().setKey("a").setConsistencyLevel(Controller.ConsistencyLevel.EVENTUAL).build());
+        System.out.println(readResponse2.getValue());
 //
 //        //Testing for Causal broadcast write
 //

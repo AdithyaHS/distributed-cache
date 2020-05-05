@@ -39,8 +39,16 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
                 @Override
                 public int compare(TotalOrderedBroadcastMessage o1, TotalOrderedBroadcastMessage o2) {
-                    return Integer.parseInt(o1.getBroadcastMessage().getLamportClock()) -
-                            Integer.parseInt(o2.getBroadcastMessage().getLamportClock());
+                    if(o1 != null && o2 != null){
+                        String[] lp1 = o1.getBroadcastMessage().getLamportClock().split("\\.");
+                        String[] lp2 = o2.getBroadcastMessage().getLamportClock().split("\\.");
+                        if(Integer.parseInt(lp1[0])==Integer.parseInt(lp2[0])){
+                            if(lp1.length <2 || lp2.length < 2) return 0;
+                            return Integer.parseInt(lp1[1])-Integer.parseInt(lp2[1]);
+                        }
+                        return Integer.parseInt(lp1[0])-Integer.parseInt(lp2[0]);
+                    }
+                    return 0;
                 }
             });
 
@@ -106,7 +114,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 new TotalOrderedBroadcastMessage(request, false);
 
         lamportClockToMessageMap.put(request.getLamportClock(), totalOrderedBroadcastMessage);
-
+        logger.info("Adding to queue message: " + totalOrderedBroadcastMessage.getBroadcastMessage().getLamportClock());
         if (!queue.offer(totalOrderedBroadcastMessage)) {
             responseObserver.onError(new Error("Not able to add to the queue"));
         }
