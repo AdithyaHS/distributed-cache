@@ -25,6 +25,9 @@ public class Utils {
 
     public String readFromRedis(String key){
         Jedis jedis = new Jedis(new HostAndPort(controllerConfigurations.redisHost, controllerConfigurations.redisPort));
+        if (jedis.get(key) == null) {
+            return "";
+        }
         return jedis.get(key);
     }
 }

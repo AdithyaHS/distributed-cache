@@ -41,9 +41,10 @@ public class ControllerHandler extends ControllerServiceGrpc.ControllerServiceIm
             new Comparator<Controller.ReadRequest>() {
                 @Override
                 public int compare(Controller.ReadRequest o1, Controller.ReadRequest o2) {
-                    String[] r1 = o1.getTimeStamp().split(".");
-                    String[] r2 = o2.getTimeStamp().split(".");
-                    return Integer.parseInt(r1[0]) - Integer.parseInt(r2[0]);
+                    if (Double.parseDouble(o1.getTimeStamp()) < Double.parseDouble(o2.getTimeStamp())) {
+                        return 1;
+                    }
+                    return -1;
                 }
             }
     );
