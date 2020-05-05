@@ -39,16 +39,11 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
 
                 @Override
                 public int compare(TotalOrderedBroadcastMessage o1, TotalOrderedBroadcastMessage o2) {
-                    if(o1 != null && o2 != null){
-                        String[] lp1 = o1.getBroadcastMessage().getLamportClock().split("\\.");
-                        String[] lp2 = o2.getBroadcastMessage().getLamportClock().split("\\.");
-                        if(Integer.parseInt(lp1[0])==Integer.parseInt(lp2[0])){
-                            if(lp1.length <2 || lp2.length < 2) return 0;
-                            return Integer.parseInt(lp1[1])-Integer.parseInt(lp2[1]);
-                        }
-                        return Integer.parseInt(lp1[0])-Integer.parseInt(lp2[0]);
-                    }
-                    return 0;
+                    if(Double.parseDouble(o1.getBroadcastMessage().getLamportClock()) >
+                            Double.parseDouble(o2.getBroadcastMessage().getLamportClock()))
+                        return 1;
+                    else
+                        return -1;
                 }
             });
 

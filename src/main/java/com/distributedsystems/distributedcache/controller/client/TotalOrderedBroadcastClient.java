@@ -9,7 +9,7 @@
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
-//public class TotalOrderedBroadcastClient {
+public class TotalOrderedBroadcastClient {
 //
 //    private static final Logger logger = LoggerFactory.getLogger(TotalOrderedBroadcastClient.class);
 //
@@ -17,6 +17,8 @@
 //        /*
 //         * This is to get the current Total order client stub that will be associated with this controller
 //         */
+//       // ClientStubs clientStub = ClientStubs.getInstance();
+//        //TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = clientStub.getCurrentTOBStub();
 //        ClientStubs clientStub = ClientStubs.getInstance();
 //        TotalOrderBroadcastServiceGrpc.TotalOrderBroadcastServiceStub stub = clientStub.getCurrentTOBStub();
 //
@@ -63,4 +65,5 @@
 //        totalOrderBroadcastServiceStub.withWaitForReady().sendBroadcastMessage(message);
 //        logger.info("after blocking");
 //    }
+}
 //}
