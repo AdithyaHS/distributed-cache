@@ -13,6 +13,8 @@ services:
       - controller.id=1
       - redis.port=6379
       - redis.host=redis1
+      - tob.servers= controller1:7004, controller2:7005, controller3:7006
+      - consistency=causal
       - num.of.servers=3
       - tob.servers=controller1:7004, controller2:7005, controller3:7006
   redis2:

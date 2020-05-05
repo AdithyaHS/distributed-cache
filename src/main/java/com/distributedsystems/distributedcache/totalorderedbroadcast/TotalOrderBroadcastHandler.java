@@ -111,6 +111,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 new TotalOrderedBroadcastMessage(request, false);
 
         lamportClockToMessageMap.put(request.getLamportClock(), totalOrderedBroadcastMessage);
+
         logger.info("Adding to queue message: " + totalOrderedBroadcastMessage.getBroadcastMessage().getLamportClock());
         if (!queue.offer(totalOrderedBroadcastMessage)) {
             responseObserver.onError(new Error("Not able to add to the queue"));
@@ -194,7 +195,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
             numOfServers = numOfServers / 2;
         }
 
-        if (acknowledgementCountMap.get(key) >= numOfServers) {
+        if (acknowledgementCountMap.getOrDefault(key,0) >= numOfServers) {
             if (!queue.isEmpty()) {
 
                 queue.remove(lamportClockToMessageMap.get(key));
@@ -230,6 +231,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                             @Override
                             public void onCompleted() {
                                 logger.info("Completed delivering the message to the controller application!!");
+                                channel.shutdown();
                             }
                         };
                 /* For most requests request to controller was being cancelled.
