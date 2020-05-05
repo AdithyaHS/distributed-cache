@@ -109,7 +109,7 @@ public class TotalOrderBroadcastHandler extends TotalOrderBroadcastServiceGrpc.T
                 new TotalOrderedBroadcastMessage(request, false);
 
         lamportClockToMessageMap.put(request.getLamportClock(), totalOrderedBroadcastMessage);
-
+        logger.info("Adding to queue message: " + totalOrderedBroadcastMessage.getBroadcastMessage().getLamportClock());
         if (!queue.offer(totalOrderedBroadcastMessage)) {
             responseObserver.onError(new Error("Not able to add to the queue"));
         }
